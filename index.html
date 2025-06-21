@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KhoaNoise MS - Ứng dụng nghe nhạc miễn phí</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6e45e2;
+            --secondary: #88d3ce;
+            --text: #f0f0f0;
+            --bg: rgba(15, 15, 25, 0.85);
+            --glass: rgba(255, 255, 255, 0.1);
+            --highlight: rgba(255, 255, 255, 0.15);
+            --border-radius: 20px;
+            --spacing: 16px;
+            --blur: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Hiệu ứng kính mờ */
+        .glass {
+            background: var(--glass);
+            backdrop-filter: blur(var(--blur));
+            -webkit-backdrop-filter: blur(var(--blur));
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
+        header {
+            padding: var(--spacing) 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        header.scrolled {
+            background: var(--bg);
+            padding: 10px 5%;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing);
+            animation: fadeIn 1s ease-out;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+
+        .app-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .admin-badge {
+            padding: 8px 16px;
+            border-radius: 100px;
+            background: linear-gradient(135deg, var(--primary), #9a4dff);
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 0 5%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            max-width: 600px;
+            z-index: 2;
+            animation: fadeIn 1s ease-out 0.2s both;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: var(--spacing);
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            margin-bottom: calc(var(--spacing) * 2);
+            opacity: 0.9;
+        }
+
+        .hero-image {
+            position: absolute;
+            right: 5%;
+            width: 40%;
+            max-width: 600px;
+            animation: float 6s ease-in-out infinite;
+            filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.3));
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 28px;
+            border-radius: 100px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #9a4dff);
+            color: white;
+            box-shadow: 0 4px 20px rgba(110, 69, 226, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(110, 69, 226, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: var(--highlight);
+            transform: translateY(-3px);
+        }
+
+        .button-group {
+            display: flex;
+            gap: var(--spacing);
+            flex-wrap: wrap;
+        }
+
+        /* Features Section */
+        section {
+            padding: 100px 5%;
+            position: relative;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: calc(var(--spacing) * 3);
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 3px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: calc(var(--spacing) * 2);
+            margin-top: calc(var(--spacing) * 3);
+        }
+
+        .feature-card {
+            padding: calc(var(--spacing) * 2);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            background: var(--highlight);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: var(--spacing);
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing);
+        }
+
+        /* Screenshots Section */
+        .screenshots-container {
+            margin-top: calc(var(--spacing) * 3);
+            position: relative;
+        }
+
+        .screenshot-hint {
+            text-align: center;
+            margin-bottom: var(--spacing);
+            font-style: italic;
+            opacity: 0.7;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .screenshots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: var(--spacing);
+        }
+
+        .screenshot {
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            aspect-ratio: 9/16;
+        }
+
+        .screenshot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: all 0.3s ease;
+        }
+
+        .screenshot:hover {
+            transform: scale(1.03);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .screenshot:hover img {
+            transform: scale(1.05);
+        }
+
+        .screenshot::after {
+            content: 'Nhấn để xem chi tiết';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .screenshot:hover::after {
+            opacity: 1;
+        }
+
+        /* Lightbox */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .lightbox.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+
+        .lightbox-content img {
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .close-lightbox {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        /* Download Section */
+        .download-cards {
+            display: flex;
+            justify-content: center;
+            gap: calc(var(--spacing) * 2);
+            flex-wrap: wrap;
+            margin-top: calc(var(--spacing) * 3);
+        }
+
+        .download-card {
+            padding: calc(var(--spacing) * 2);
+            text-align: center;
+            max-width: 300px;
+            transition: all 0.3s ease;
+        }
+
+        .download-card:hover {
+            transform: translateY(-10px);
+            background: var(--highlight);
+        }
+
+        .download-icon {
+            font-size: 3rem;
+            margin-bottom: var(--spacing);
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .architecture-name {
+            font-size: 1.2rem;
+            margin-bottom: var(--spacing);
+            font-weight: 600;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: calc(var(--spacing) * 3) 5%;
+            margin-top: calc(var(--spacing) * 2);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing);
+            margin-bottom: var(--spacing);
+        }
+
+        .footer-logo img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+        }
+
+        .footer-text {
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero-image {
+                width: 50%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+                padding-top: 120px;
+                padding-bottom: 80px;
+            }
+
+            .hero-content {
+                max-width: 100%;
+                margin-bottom: calc(var(--spacing) * 3);
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-image {
+                position: relative;
+                right: auto;
+                width: 80%;
+                max-width: 400px;
+                margin: 0 auto;
+            }
+
+            .button-group {
+                justify-content: center;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .admin-badge {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="glass">
+        <div class="logo-container">
+            <img src="ic_launcher.webp" alt="KhoaNoise MS Logo" class="logo" id="app-logo">
+            <span class="app-name">KhoaNoise MS</span>
+        </div>
+        <div class="admin-badge">
+            <i class="fas fa-code"></i>
+            <span>Khoa Dev 07</span>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Trải nghiệm âm nhạc không giới hạn</h1>
+            <p>
+                KhoaNoise MS - Ứng dụng nghe nhạc miễn phí, không quảng cáo, không Premium. 
+                Thiết kế tối giản nhưng mạnh mẽ, mang đến trải nghiệm âm nhạc tuyệt vời nhất trên thiết bị Android của bạn.
+            </p>
+            <div class="button-group">
+                <a href="#download" class="btn btn-primary">
+                    <i class="fas fa-download"></i>
+                    Tải ngay
+                </a>
+                <a href="#features" class="btn btn-secondary">
+                    <i class="fas fa-star"></i>
+                    Giới thiệu App
+                </a>
+            </div>
+        </div>
+        <img src="ic_launcher.webp" alt="KhoaNoise MS App Preview" class="hero-image glass">
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="glass" style="background: var(--bg); margin: 50px 5%; border-radius: var(--border-radius);">
+        <h2 class="section-title">Tại sao lại chọn KhoaNoise MS?</h2>
+        <div class="features-grid">
+            <div class="feature-card glass">
+                <div class="feature-icon">
+                    <i class="fas fa-ad"></i>
+                </div>
+                <h3 class="feature-title">Không quảng cáo</h3>
+                <p>Trải nghiệm âm nhạc liền mạch mà không bị làm phiền bởi bất kỳ quảng cáo nào.</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="feature-icon">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <h3 class="feature-title">Không Premium</h3>
+                <p>Tất cả tính năng đều miễn phí, không có gói Premium hay yêu cầu thanh toán.</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="feature-icon">
+                    <i class="fas fa-music"></i>
+                </div>
+                <h3 class="feature-title">Chất lượng cao</h3>
+                <p>Hỗ trợ phát nhạc chất lượng cao, mang đến trải nghiệm âm thanh tuyệt vời.</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="feature-icon">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <h3 class="feature-title">Chế độ tối</h3>
+                <p>Giao diện tối tiện lợi cho việc nghe nhạc vào ban đêm và tiết kiệm pin.</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="feature-icon">
+                    <i class="fas fa-folder-open"></i>
+                </div>
+                <h3 class="feature-title">Quản lý thư viện</h3>
+                <p>Tổ chức và quản lý thư viện nhạc của bạn một cách dễ dàng và trực quan.</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="feature-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3 class="feature-title">Nhẹ và mượt</h3>
+                <p>Ứng dụng được tối ưu hóa để hoạt động mượt mà ngay cả trên thiết bị cấu hình thấp.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots Section -->
+    <section id="screenshots">
+        <h2 class="section-title">Hình ảnh ứng dụng</h2>
+        <p class="screenshot-hint">Nhấn vào ảnh để xem chi tiết</p>
+        <div class="screenshots-container">
+            <div class="screenshots-grid">
+                <div class="screenshot glass">
+                    <img src="z6728385783157_7e1ddd20b3e7191fd518a6ff0862ed79.jpg" alt="KhoaNoise MS Screenshot 1" data-full="https://via.placeholder.com/800x1200">
+                </div>
+                <div class="screenshot glass">
+                    <img src="z6728385802463_62843a8bd4b32f1f3399ede945b8e9a5.jpg" alt="KhoaNoise MS Screenshot 2" data-full="https://via.placeholder.com/800x1200">
+                </div>
+                <div class="screenshot glass">
+                    <img src="z6728385803747_c0b61f844b306d997031283b16415f5e.jpg" alt="KhoaNoise MS Screenshot 3" data-full="https://via.placeholder.com/800x1200">
+                </div>
+                <div class="screenshot glass">
+                    <img src="z6728385813577_1919ab7184a93dfb9c1665a2bed8f9cc.jpg" alt="KhoaNoise MS Screenshot 4" data-full="https://via.placeholder.com/800x1200">
+                </div>
+                <div class="screenshot glass">
+                    <img src="ic_launcher.webp" alt="KhoaNoise MS Screenshot 5" data-full="https://via.placeholder.com/800x1200">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <div class="lightbox-content">
+            <button class="close-lightbox" id="close-lightbox">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="lightbox-image" src="" alt="">
+        </div>
+    </div>
+
+    <!-- Download Section -->
+    <section id="download" class="glass" style="background: var(--bg); margin: 50px 5%; border-radius: var(--border-radius);">
+        <h2 class="section-title">Tải ứng dụng</h2>
+        <p style="text-align: center; max-width: 800px; margin: 0 auto;">
+            Chọn phiên bản phù hợp với thiết bị của bạn. KhoaNoise MS hoàn toàn miễn phí và sẽ luôn như vậy!
+        </p>
+        <div class="download-cards">
+            <div class="download-card glass">
+                <div class="download-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3 class="architecture-name">ARM 64-bit (v8a)</h3>
+                <p>Dành cho các thiết bị Android hiện đại (hầu hết điện thoại từ 2016 trở lại đây)</p>
+                <button class="btn btn-primary download-btn" data-arch="v8a">
+                    <i class="fas fa-download"></i>
+                    Tải xuống
+                </button>
+            </div>
+            <div class="download-card glass">
+                <div class="download-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3 class="architecture-name">ARM 32-bit (v7a)</h3>
+                <p>Dành cho các thiết bị Android cũ hơn (tương thích rộng rãi)</p>
+                <button class="btn btn-primary download-btn" data-arch="v7a">
+                    <br>
+                    <i class="fas fa-download"></i>
+                    Tải xuống
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-logo">
+            <img src="ic_launcher.webp" alt="KhoaNoise MS Logo" class="logo">
+            <span class="app-name">KhoaNoise MS</span>
+        </div>
+        <p class="footer-text">Ứng dụng nghe nhạc miễn phí, không quảng cáo dành cho Android</p>
+        <p class="footer-text">© 2025 Khoa Dev 07. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Scroll header effect
+        const header = document.querySelector('header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Lightbox functionality
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-image');
+        const closeLightbox = document.getElementById('close-lightbox');
+        const screenshots = document.querySelectorAll('.screenshot img');
+
+        // Nếu data-full bị thiếu, dùng luôn src làm data-full
+screenshots.forEach(screenshot => {
+    if (!screenshot.hasAttribute('data-full') || screenshot.getAttribute('data-full') === 'https://via.placeholder.com/800x1200') {
+        screenshot.setAttribute('data-full', screenshot.getAttribute('src'));
+    }
+});
+
+
+        screenshots.forEach(screenshot => {
+            screenshot.addEventListener('click', () => {
+                const fullSizeSrc = screenshot.getAttribute('data-full');
+                lightboxImg.setAttribute('src', fullSizeSrc);
+                lightbox.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+        });
+
+        closeLightbox.addEventListener('click', () => {
+            lightbox.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) {
+                lightbox.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Download buttons
+        const downloadBtns = document.querySelectorAll('.download-btn');
+        downloadBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const arch = btn.getAttribute('data-arch');
+        const link = document.createElement('a');
+        link.href = `KhoaNoiseMS-${arch}.apk`;  // trỏ thẳng file trong cùng thư mục
+        link.download = `KhoaNoiseMS-${arch}.apk`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+});
+
+
+        // Animation on scroll
+        const animateOnScroll = () => {
+            const elements = document.querySelectorAll('.feature-card, .download-card, .screenshot');
+            
+            elements.forEach(element => {
+                const elementPosition = element.getBoundingClientRect().top;
+                const screenPosition = window.innerHeight / 1.2;
+                
+                if (elementPosition < screenPosition) {
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }
+            });
+        };
+
+        // Set initial state for animated elements
+        document.querySelectorAll('.feature-card, .download-card, .screenshot').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        });
+
+        window.addEventListener('scroll', animateOnScroll);
+        window.addEventListener('load', animateOnScroll);
+    </script>
+</body>
+</html>
